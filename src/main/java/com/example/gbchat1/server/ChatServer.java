@@ -48,7 +48,14 @@ public class ChatServer {
 
     }
 
+    public void sendMessage(String message, String nick) {
+        for (ClientHandler client : clients) {
+            if (message.startsWith(client.getNick()) || nick.equals(client.getNick())) {
+                client.sendMessage(message);
+            }
+        }
 
+    }
 
     public void subscribe(ClientHandler client) {
         clients.add(client);

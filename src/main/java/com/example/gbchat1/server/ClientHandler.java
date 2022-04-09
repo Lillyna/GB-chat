@@ -3,7 +3,6 @@ package com.example.gbchat1.server;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.net.Socket;
 
 public class ClientHandler {
@@ -58,8 +57,15 @@ public class ClientHandler {
             try {
                 msg = in.readUTF();
                 System.out.println("Получено сообщение: " + msg);
-                if("/end".equals(msg)){
+                if ("/end".equals(msg)) {
                     break;
+                }
+                String msgToSend = this.nick + ":\n" + msg;
+                if (msg.startsWith("/w") & msg.split(" ").length > 2) {
+                    String[] msgArr = msg.split(" ", 3);
+                    server.sendMessage(this.nick + ":\n" + msgArr[2], msgArr[1]);
+                } else {
+                    server.broadcast(msgToSend);
                 }
 
 
