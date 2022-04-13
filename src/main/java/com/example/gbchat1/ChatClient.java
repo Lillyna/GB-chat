@@ -1,5 +1,7 @@
 package com.example.gbchat1;
 
+import javafx.application.Platform;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -13,6 +15,11 @@ public class ChatClient {
     final private ClientController controller;
 
     public ChatClient(ClientController controller) {
+        try {
+            Thread.sleep(120000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         this.controller = controller;
     }
 
@@ -43,9 +50,20 @@ public class ChatClient {
             try {
                 String s = in.readUTF();
                 controller.addMessage(s);
-                if ("/end".equals(s)) {
-                    controller.toogleBoxesVisibility(false);
-                    break;
+                if(Command.isCommand(s)) {
+                    Command command = Command.getCommand(s);
+                    String[] params = command.parse(s);
+
+                    if (command == Command.END) {
+                        controller.toogleBoxesVisibility(false);
+                        break;
+                    }
+                    if(command == Command.ERROR){
+                        Platform.runLater(()->controller.showError(params));
+                    }
+                    if(command == Command.CLIENTS){
+                        controller.updateListClients(params);
+                    }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -59,12 +77,16 @@ public class ChatClient {
         while (true) {
             try {
                 final String msg = in.readUTF();
-                if (msg.startsWith("/authok")) {
-                    String[] split = msg.split(" ");
-                    String nick = split[1];
-                    controller.toogleBoxesVisibility(true);
-                    controller.addMessage("Успешная авторизация под ником " + nick);
-                    break;
+                if(Command.isCommand(msg)) {
+                    Command command = Command.getCommand(msg);
+                    String[] params = command.parse(msg);
+                    if (command == Command.AUTHOK) {
+                        String[] split = msg.split(" ");
+                        String nick = split[1];
+                        controller.toogleBoxesVisibility(true);
+                        controller.addMessage("Успешная авторизация под ником " + nick);
+                        break;
+                    }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -78,5 +100,9 @@ public class ChatClient {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void sendMessage(Command command, String... params) {
+        sendMessage(command.collectMessage(params));
     }
 }

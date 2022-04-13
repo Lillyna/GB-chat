@@ -14,14 +14,18 @@
         <PasswordField fx:id="passwordField" promptText="Password"/>
         <Button fx:id="authButton" text="Login" onAction="#authButtonClick"/>
     </HBox>
-    <VBox fx:id="messageBox" VBox.vgrow="ALWAYS" visible="false">
+<HBox fx:id="messageBox" visible="false" spacing="5">
+        <VBox spacing="5">
+    <VHBox fx:id="messageBox" VBox.vgrow="ALWAYS" visible="false">
         <TextArea fx:id="messageArea" VBox.vgrow="ALWAYS"/>
         <HBox VBox.vgrow="ALWAYS">
             <TextField fx:id="textField" VBox.vgrow="ALWAYS"/>
             <Button fx:id="sendButton" text="Send" defaultButton="true" onAction="#sendButtonClick"/>
         </HBox>
-
-    </VBox>
+    </VHBox>
+    <ListView fx:id="clientList" minWidth=""
+    </HBox>
+</VBox>
 
 
 </VBox>

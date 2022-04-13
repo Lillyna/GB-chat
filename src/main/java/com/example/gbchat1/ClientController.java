@@ -1,11 +1,10 @@
 package com.example.gbchat1;
 
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
@@ -14,6 +13,8 @@ import java.io.IOException;
 public class ClientController {
 
     private final ChatClient client;
+    @FXML
+    public ListView<String> clientList;
 
     public ClientController() {
         this.client = new ChatClient(this);
@@ -42,7 +43,7 @@ public class ClientController {
     private Button sendButton;
 
     public void authButtonClick(ActionEvent authButton) {
-        client.sendMessage("/auth " + loginField.getText() + " " + passwordField.getText());
+        client.sendMessage(Command.AUTH, loginField.getText() , passwordField.getText());
         loginField.clear();
         passwordField.clear();
     }
@@ -68,5 +69,24 @@ public class ClientController {
 
     }
 
+    public void showError(String[] error){
+        new Alert(Alert.AlertType.ERROR, error[0], new ButtonType(
+                "OK", ButtonBar.ButtonData.OK_DONE
+        ));
+    }
+    public void selectClient(MouseEvent mouseEvent){
+        if (mouseEvent.getClickCount() == 2){
+            String text = textField.getText();
+            String nick = clientList.getSelectionModel().getSelectedItem();
+            textField.setText(Command.PRIVATE_MESSAGE.collectMessage(nick, text));
+            textField.requestFocus();
+            textField.selectEnd();
+        }
+    }
 
+
+    public void updateListClients(String[]params) {
+        clientList.getItems().clear();
+        clientList.getItems().addAll(params);
+    }
 }

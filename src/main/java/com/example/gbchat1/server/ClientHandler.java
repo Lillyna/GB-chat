@@ -1,5 +1,7 @@
 package com.example.gbchat1.server;
 
+import com.example.gbchat1.Command;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -57,7 +59,7 @@ public class ClientHandler {
             try {
                 msg = in.readUTF();
                 System.out.println("Получено сообщение: " + msg);
-                if ("/end".equals(msg)) {
+                if (Command.isCommand(msg) && Command.getCommand(msg) == Command.END) {
                     break;
                 }
                 String msgToSend = this.nick + ":\n" + msg;
@@ -77,34 +79,43 @@ public class ClientHandler {
     }
 
     private void authenticate() {
-        while (true){
-            try{
+        while (true) {
+            try {
                 String msg = in.readUTF(); // /auth login1 pass1
-                if(msg.startsWith("/auth")){
+                if (Command.isCommand(msg)) {
+                    Command command = Command.getCommand(msg);
+                    String[] params = command.parse(msg);
+
+                if (command == Command.AUTH) {
                     final String[] s = msg.split(" ");
-                    String login = s[1];
-                    String pass = s[2];
+                    String login = params[0];
+                    String pass = params[1];
                     String nick = authService.getNickByLoginAndPassword(login, pass);
-                    if(nick!=null){
-                        if(server.isNickBusy(nick)){
-                            sendMessage("Пользователь уже авторизован");
+                    if (nick != null) {
+                        if (server.isNickBusy(nick)) {
+                            sendMessage(Command.ERROR, "Пользователь уже авторизован");
                             continue;
                         }
-                        sendMessage("/authok "+ nick);
+                        sendMessage(Command.AUTHOK, nick);
                         this.nick = nick;
                         server.broadcast("Пользователь " + nick + " вошел в чат");
                         server.subscribe(this);
                         break;
                     }
-                }
-            } catch (IOException e){
+                }}
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+
+    }
+
+    public void sendMessage(Command command, String... params) {
+        sendMessage(command.collectMessage(params));
     }
 
     private void closeConnection() {
-        sendMessage("/end");
+        sendMessage(Command.END);
         try{
             if(in != null){
                 in.close();
