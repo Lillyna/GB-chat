@@ -3,7 +3,11 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<VBox fx:controller="com.example.gbchat1.ClientController" xmlns:fx="http://javafx.com/fxml" spacing="5">
+<VBox alignment="CENTER" spacing="20.0" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.example.gbchat1.ClientController">
+    <padding>
+        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+    </padding>
 <HBox fx:id="loginBox" spacing="5" VBox.vgrow="ALWAYS">
     <TextField fx:id="loginField" promptText="Login"/>
     <PasswordField fx:id="passwordField" promptText="Password"/>
