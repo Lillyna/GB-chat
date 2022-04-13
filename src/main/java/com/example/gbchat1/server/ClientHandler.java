@@ -13,23 +13,24 @@ public class ClientHandler {
     private String nick;
     private final DataInputStream in;
     private final DataOutputStream out;
-    AuthServiceImpl authService;
+    AuthService authService;
 
     public String getNick() {
         return nick;
     }
 
-    public ClientHandler(Socket socket, ChatServer chatServer) {
+    public ClientHandler(Socket socket, ChatServer chatServer, AuthService authService) {
 
-       try{
-           this.socket = socket;
-           this.server = chatServer;
-           this.in = new DataInputStream(socket.getInputStream());
-           this.out = new DataOutputStream(socket.getOutputStream());
-           this.authService = new AuthServiceImpl();
+        try {
+            this.nick = "";
+            this.socket = socket;
+            this.server = chatServer;
+            this.in = new DataInputStream(socket.getInputStream());
+            this.out = new DataOutputStream(socket.getOutputStream());
+            this.authService = authService;
 
-           new Thread(() -> {
-               try{
+            new Thread(() -> {
+                try {
                    authenticate();
                    readMessage();
                } finally {
@@ -53,29 +54,31 @@ public class ClientHandler {
         }
     }
 
-    private void readMessage(){
-        while (true){
-            String msg;
-            try {
-                msg = in.readUTF();
+    private void readMessage() {
+        try {
+            while (true) {
+                final String msg = in.readUTF();
                 System.out.println("Получено сообщение: " + msg);
-                if (Command.isCommand(msg) && Command.getCommand(msg) == Command.END) {
-                    break;
+                if (Command.isCommand(msg)) {
+                    final Command command = Command.getCommand(msg);
+                    final String[] params = command.parse(msg);
+                    if (command == Command.END) {
+                        break;
+                    }
+                    if (command == Command.PRIVATE_MESSAGE) {
+                        server.sendMessageToClient(this, params[0], params[1]);
+                        continue;
+                    }
                 }
-                String msgToSend = this.nick + ":\n" + msg;
-                if (msg.startsWith("/w") & msg.split(" ").length > 2) {
-                    String[] msgArr = msg.split(" ", 3);
-                    server.sendMessage(this.nick + ":\n" + msgArr[2], msgArr[1]);
-                } else {
-                    server.broadcast(msgToSend);
-                }
+                server.broadcast(nick + ": " + msg);
+            }
 
 
-            } catch (IOException e) {
+        } catch (IOException e) {
                 e.printStackTrace();
             }
 
-        }
+
     }
 
     private void authenticate() {

@@ -23,26 +23,49 @@ public class ChatClient {
         this.controller = controller;
     }
 
-    public void openConnection() throws IOException {
+    public void openConnection() throws Exception {
         socket = new Socket("localhost", 8189);
         in = new DataInputStream(socket.getInputStream());
         out = new DataOutputStream(socket.getOutputStream());
-        new Thread(() -> {
+        final Thread readThread = new Thread(() -> {
             try {
                 waitAuth();
                 readMessage();
-            } finally {
-                closeConnection(socket);
+            } catch(IOException e){
+                e.printStackTrace();
             }
-        }).start();
+            finally {
+                closeConnection();
+            }
+        });
+        readThread.setDaemon(true);
+        readThread.start();
     }
 
-    private void closeConnection(Socket socket) {
-        try {
-            socket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+    private void closeConnection() {
+        if(socket!=null){
+            try {
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+        if(in!=null){
+            try {
+                in.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        if(out!=null){
+            try {
+                out.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        System.exit(0);
+
     }
 
     private void readMessage() {
@@ -73,25 +96,24 @@ public class ChatClient {
         }
     }
 
-    private void waitAuth() {
+    private void waitAuth() throws IOException {
         while (true) {
-            try {
+
                 final String msg = in.readUTF();
-                if(Command.isCommand(msg)) {
+                if (Command.isCommand(msg)) {
                     Command command = Command.getCommand(msg);
                     String[] params = command.parse(msg);
                     if (command == Command.AUTHOK) {
-                        String[] split = msg.split(" ");
-                        String nick = split[1];
+                        final String nick = params[0];
                         controller.toogleBoxesVisibility(true);
                         controller.addMessage("Успешная авторизация под ником " + nick);
                         break;
                     }
+                    if (Command.ERROR.equals(command)) {
+                        Platform.runLater(() -> controller.showError(params));
+                    }
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
             }
-        }
     }
 
     public void sendMessage(String s) {

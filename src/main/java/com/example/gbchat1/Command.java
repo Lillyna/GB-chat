@@ -89,7 +89,7 @@ public enum Command {
 
     public abstract String[] parse(String commandText);
 
-    public String collectMessage(String nick, String[] params) {
+    public String collectMessage(String... params) {
         String command = this.getCommand();
         return command + (params == null ? "" : " " + String.join(" ", params));
     }

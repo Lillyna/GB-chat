@@ -8,39 +8,35 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ChatServer {
 
-    private final AuthService authService;
-    private final HashMap<String, ClientHandler> clients;
+    private final Map<String, ClientHandler> clients;
 
     public ChatServer() {
         this.clients = new HashMap<>();
-        this.authService = new AuthServiceImpl();
     }
 
     public boolean isNickBusy(String nick) {
 
-            if (clients.containsKey(nick)) {
-                return true;
-
-        }
-        return false;
+            return clients.containsKey(nick);
     }
 
     public void run() {
         try (
-                ServerSocket serverSocket = new ServerSocket(8189)
+                ServerSocket serverSocket = new ServerSocket(8189);
+                AuthService authService = new AuthServiceImpl()
         ) {
             while (true) {
                 System.out.println("Ожидаем подключения клиента");
                 final Socket socket = serverSocket.accept();
-                new ClientHandler(socket, this);
+                new ClientHandler(socket, this, authService);
                 System.out.println("Клиент подключился");
             }
         } catch (IOException e) {
-            throw new RuntimeException("Ошибка сервера", e);
+           e.printStackTrace();
         }
 
     }
@@ -62,7 +58,6 @@ public class ChatServer {
     }
 
     public void subscribe(ClientHandler client) {
-        //clients.add(client);
         clients.put(client.getNick(), client);
         broadcastClientList();
 
@@ -79,21 +74,19 @@ public class ChatServer {
         broadcast(Command.CLIENTS, nicks.toString().trim());
     }
 
-    private void broadcast(Command clients, String nicks) {
-        for (ClientHandler client : clients.values()){
-            client.sendMessage();
-        }
+    private void broadcast(Command command, String nicks) {
+        clients.values().forEach(client -> client.sendMessage(command, nicks));
     }
 
     public void unsubscribe(ClientHandler client) {
-        clients.remove(client);
+        clients.remove(client.getNick());
         broadcastClientList();
 
     }
-    public void sendMessage (ClientHandler sender, String to, String message){
+    public void sendMessageToClient (ClientHandler sender, String to, String message){
         ClientHandler receiver = clients.get(to);
         if(sender != null){
-            sender.sendMessage("От " + sender.getNick() + ": " + message;
+            sender.sendMessage("От " + sender.getNick() + ": " + message);
             sender.sendMessage("участнику " + to + ": " + message);
         } else {
             sender.sendMessage(Command.ERROR, "Участника с ником " + to + " нет в чате!");

@@ -45,4 +45,9 @@ public class AuthServiceImpl implements AuthService {
         System.out.println("Сервис аутентификации остановлен");
 
     }
+
+    @Override
+    public void run() {
+        System.out.println("AuthService run");
+    }
 }

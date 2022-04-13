@@ -9,6 +9,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import java.io.IOException;
+import java.util.Optional;
 
 public class ClientController {
 
@@ -18,10 +19,27 @@ public class ClientController {
 
     public ClientController() {
         this.client = new ChatClient(this);
-        try {
-            client.openConnection();
-        } catch (IOException e) {
-            e.printStackTrace();
+        while(true) {
+            try {
+                client.openConnection();
+                break;
+            } catch (Exception e) {
+                showNotification();
+            }
+        }
+    }
+
+    private void showNotification() {
+        final Alert alert = new Alert(Alert.AlertType.ERROR,
+                "Не могу подклчиться к серверу.\n" +
+                "Проверьте, что сервер запущен",
+                new ButtonType("Попробовать еще раз", ButtonBar.ButtonData.OK_DONE),
+                new ButtonType("Выйти", ButtonBar.ButtonData.CANCEL_CLOSE));
+        alert.setTitle("Ошибка подключения");
+        final Optional<ButtonType> buttonType = alert.showAndWait();
+        final Boolean isExit = buttonType.map(btn -> btn.getButtonData().isCancelButton()).orElse(false);
+        if(isExit){
+            System.exit(0);
         }
     }
 
