@@ -26,7 +26,7 @@ public class ChatServer {
 
     public void run() {
         try (
-                ServerSocket serverSocket = new ServerSocket(8189);
+                ServerSocket serverSocket = new ServerSocket(8181);
                 AuthService authService = new AuthServiceImpl()
         ) {
             while (true) {

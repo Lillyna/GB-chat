@@ -31,6 +31,7 @@ public class ClientHandler {
 
             new Thread(() -> {
                 try {
+
                    authenticate();
                    readMessage();
                } finally {
@@ -86,10 +87,12 @@ public class ClientHandler {
             try {
                 String msg = in.readUTF(); // /auth login1 pass1
                 if (Command.isCommand(msg)) {
+
                     Command command = Command.getCommand(msg);
                     String[] params = command.parse(msg);
 
                 if (command == Command.AUTH) {
+
                     String login = params[0];
                     String pass = params[1];
                     String nick = authService.getNickByLoginAndPassword(login, pass);
