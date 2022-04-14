@@ -15,11 +15,11 @@ public class ChatClient {
     final private ClientController controller;
 
     public ChatClient(ClientController controller) {
-        try {
-            Thread.sleep(120000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            Thread.sleep(120000);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
         this.controller = controller;
     }
 
@@ -68,11 +68,10 @@ public class ChatClient {
 
     }
 
-    private void readMessage() {
+    private void readMessage() throws IOException {
         while (true) {
-            try {
                 String s = in.readUTF();
-                controller.addMessage(s);
+                System.out.println("Receive message: " + s);
                 if(Command.isCommand(s)) {
                     Command command = Command.getCommand(s);
                     String[] params = command.parse(s);
@@ -83,16 +82,14 @@ public class ChatClient {
                     }
                     if(command == Command.ERROR){
                         Platform.runLater(()->controller.showError(params));
+                        continue;
                     }
                     if(command == Command.CLIENTS){
                         controller.updateListClients(params);
+                        continue;
                     }
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-
+                controller.addMessage(s);
         }
     }
 
@@ -118,6 +115,7 @@ public class ChatClient {
 
     public void sendMessage(String s) {
         try {
+            System.out.println("Send message: " + s);
             out.writeUTF(s);
         } catch (IOException e) {
             e.printStackTrace();

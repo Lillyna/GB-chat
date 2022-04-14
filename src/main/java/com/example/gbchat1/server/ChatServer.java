@@ -78,6 +78,7 @@ public class ChatServer {
         clients.values().forEach(client -> client.sendMessage(command, nicks));
     }
 
+
     public void unsubscribe(ClientHandler client) {
         clients.remove(client.getNick());
         broadcastClientList();
@@ -85,8 +86,8 @@ public class ChatServer {
     }
     public void sendMessageToClient (ClientHandler sender, String to, String message){
         ClientHandler receiver = clients.get(to);
-        if(sender != null){
-            sender.sendMessage("От " + sender.getNick() + ": " + message);
+        if(receiver != null){
+            receiver.sendMessage("От " + sender.getNick() + ": " + message);
             sender.sendMessage("участнику " + to + ": " + message);
         } else {
             sender.sendMessage(Command.ERROR, "Участника с ником " + to + " нет в чате!");

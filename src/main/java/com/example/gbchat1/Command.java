@@ -37,8 +37,8 @@ public enum Command {
     ERROR("/error"){ // /error Сообщение об ошибке
         @Override
         public String[] parse(String commandText) {
-            String[] split = commandText.split(COMMAND_DELIMETER, 2);
-            return split;
+            final String errorMsg = commandText.split(COMMAND_DELIMETER, 2)[1];
+            return new String[]{errorMsg};
         }
     },
     CLIENTS("/clients"){
@@ -46,7 +46,7 @@ public enum Command {
         public String[] parse(String commandText) {
             String[] split = commandText.split(COMMAND_DELIMETER);
             String[] nicks = new String[split.length-1];
-            for (int i = 0; i < split.length; i++) {
+            for (int i = 1; i < split.length; i++) {
                 nicks[i-1] = split[i];
             }
 
@@ -54,9 +54,10 @@ public enum Command {
         }
     };// /end
 
-    private static final Map<String, Command> map = Stream.of(Command.values()).collect(Collectors.toMap(Command::getCommand, Function.identity()));
+    private static final Map<String, Command> map = Stream.of(Command.values())
+            .collect(Collectors.toMap(Command::getCommand, Function.identity()));
 
-    private static final String COMMAND_DELIMETER = "\\s ";
+    private static final String COMMAND_DELIMETER = "\\s+";
     private String command;
     private String[] params = new String[0];
 
@@ -83,7 +84,11 @@ public enum Command {
         }
         int i = message.indexOf(" ");
         final String cmd = i > 0 ? message.substring(0, i) : message;
-        return map.get(cmd);
+        final Command command = map.get(cmd);
+        if (command == null) {
+            throw new RuntimeException("'" + cmd + "' unknown command");
+        }
+        return command;
 
     }
 

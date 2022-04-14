@@ -18,7 +18,10 @@ public class AuthServiceImpl implements AuthService {
     }
 
     public AuthServiceImpl() {
-        this.start();
+        users = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            users.add(new UserData("login" + i, "pass" + i, "nick" + i));
+        }
     }
 
     @Override
@@ -29,15 +32,6 @@ public class AuthServiceImpl implements AuthService {
             }
         }
         return null;
-    }
-
-    @Override
-    public void start() {
-        users = new ArrayList<>();
-        for (int i = 0; i < 5; i++) {
-            users.add(new UserData("login" + i, "pass" + i, "nick" + i));
-        }
-
     }
 
     @Override

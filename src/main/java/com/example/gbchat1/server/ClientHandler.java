@@ -90,7 +90,6 @@ public class ClientHandler {
                     String[] params = command.parse(msg);
 
                 if (command == Command.AUTH) {
-                    final String[] s = msg.split(" ");
                     String login = params[0];
                     String pass = params[1];
                     String nick = authService.getNickByLoginAndPassword(login, pass);
@@ -104,6 +103,9 @@ public class ClientHandler {
                         server.broadcast("Пользователь " + nick + " вошел в чат");
                         server.subscribe(this);
                         break;
+                    }
+                    else{
+                        sendMessage(Command.ERROR, "Неверные логин и пароль");
                     }
                 }}
             } catch (IOException e) {

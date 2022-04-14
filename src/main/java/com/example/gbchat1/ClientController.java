@@ -18,7 +18,7 @@ public class ClientController {
     public ListView<String> clientList;
 
     public ClientController() {
-        this.client = new ChatClient(this);
+        client = new ChatClient(this);
         while(true) {
             try {
                 client.openConnection();
@@ -46,13 +46,11 @@ public class ClientController {
     @FXML
     private HBox loginBox;
     @FXML
-    private VBox messageBox;
+    private HBox messageBox;
     @FXML
     private TextField loginField;
     @FXML
     private PasswordField passwordField;
-    @FXML
-    private Button authButton;
     @FXML
     private TextArea messageArea;
     @FXML
@@ -61,9 +59,8 @@ public class ClientController {
     private Button sendButton;
 
     public void authButtonClick(ActionEvent authButton) {
-        client.sendMessage(Command.AUTH, loginField.getText() , passwordField.getText());
-        loginField.clear();
-        passwordField.clear();
+        System.out.println("Отправляю сообщение " + Command.AUTH.getCommand() + " " + loginField.getText() + " " + passwordField.getText());
+        client.sendMessage(Command.AUTH, loginField.getText(), passwordField.getText());
     }
 
     public void sendButtonClick(ActionEvent actionEvent) {
@@ -88,9 +85,12 @@ public class ClientController {
     }
 
     public void showError(String[] error){
-        new Alert(Alert.AlertType.ERROR, error[0], new ButtonType(
+        Alert alert = new Alert(Alert.AlertType.ERROR, error[0], new ButtonType(
                 "OK", ButtonBar.ButtonData.OK_DONE
         ));
+        alert.setTitle("Ошибка!");
+        alert.showAndWait();
+
     }
     public void selectClient(MouseEvent mouseEvent){
         if (mouseEvent.getClickCount() == 2){
@@ -101,6 +101,7 @@ public class ClientController {
             textField.selectEnd();
         }
     }
+
 
 
     public void updateListClients(String[]params) {
