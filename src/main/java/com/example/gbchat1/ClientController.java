@@ -42,7 +42,7 @@ public class ClientController {
         }
     }
 
-    public void btnSendClick(ActionEvent event) {
+    public void sendButtonClick(ActionEvent event) {
         final String message = textField.getText().trim();
         if (message.isEmpty()) {
             return;
@@ -56,7 +56,7 @@ public class ClientController {
         textArea.appendText(message + "\n");
     }
 
-    public void btnAuthClick(ActionEvent actionEvent) {
+    public void authButtonClick(ActionEvent actionEvent) {
         client.sendMessage(Command.AUTH, loginField.getText(), passwordField.getText());
     }
 
