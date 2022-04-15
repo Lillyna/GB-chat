@@ -19,79 +19,62 @@ public class ChatServer {
         this.clients = new HashMap<>();
     }
 
-    public boolean isNickBusy(String nick) {
-
-            return clients.containsKey(nick);
-    }
-
     public void run() {
-        try (
-                ServerSocket serverSocket = new ServerSocket(8181);
-                AuthService authService = new AuthServiceImpl()
-        ) {
+        try (ServerSocket serverSocket = new ServerSocket(8181);
+             AuthService authService = new AuthServiceImpl()) {
             while (true) {
-                System.out.println("Ожидаем подключения клиента");
+                System.out.println("Wait client connection...");
                 final Socket socket = serverSocket.accept();
                 new ClientHandler(socket, this, authService);
-                System.out.println("Клиент подключился");
+                System.out.println("Client connected");
             }
         } catch (IOException e) {
-           e.printStackTrace();
+            e.printStackTrace();
         }
-
     }
 
-    public void broadcast(String message) {
-        for (ClientHandler client : clients.values()) {
-            client.sendMessage(message);
-        }
-
-    }
-
-    public void sendMessage(String message, String nick) {
-        for (ClientHandler client : clients.values()) {
-            if (message.startsWith(client.getNick()) || nick.equals(client.getNick())) {
-                client.sendMessage(message);
-            }
-        }
-
+    public boolean isNickBusy(String nick) {
+        return clients.containsKey(nick);
     }
 
     public void subscribe(ClientHandler client) {
         clients.put(client.getNick(), client);
         broadcastClientList();
+    }
 
+    public void unsubscribe(ClientHandler client) {
+        clients.remove(client.getNick());
+        broadcastClientList();
     }
 
     private void broadcastClientList() {
         StringBuilder nicks = new StringBuilder();
-        for (ClientHandler value : clients.values()){
+        for (ClientHandler value : clients.values()) {
             nicks.append(value.getNick()).append(" ");
         }
-//        String nicks = clients.values().stream()
-//                .map(client -> client.getNick())
+//        final String nicks = clients.values().stream()
+//                .map(ClientHandler::getNick)
 //                .collect(Collectors.joining(" "));
         broadcast(Command.CLIENTS, nicks.toString().trim());
     }
 
     private void broadcast(Command command, String nicks) {
-        clients.values().forEach(client -> client.sendMessage(command, nicks));
+        for (ClientHandler client : clients.values()) {
+            client.sendMessage(command, nicks);
+        }
     }
 
-
-    public void unsubscribe(ClientHandler client) {
-        clients.remove(client.getNick());
-        broadcastClientList();
-
+    public void broadcast(String msg) {
+        clients.values().forEach(client -> client.sendMessage(msg));
     }
-    public void sendMessageToClient (ClientHandler sender, String to, String message){
-        ClientHandler receiver = clients.get(to);
-        if(receiver != null){
-            receiver.sendMessage("От " + sender.getNick() + ": " + message);
+
+    public void sendMessageToClient(ClientHandler sender, String to, String message) {
+        final ClientHandler receiver = clients.get(to);
+        if (receiver != null) {
+            receiver.sendMessage("от " + sender.getNick() + ": " + message);
             sender.sendMessage("участнику " + to + ": " + message);
         } else {
             sender.sendMessage(Command.ERROR, "Участника с ником " + to + " нет в чате!");
         }
-
     }
 }

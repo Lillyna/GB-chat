@@ -31,16 +31,17 @@ public class ChatClient {
             try {
                 waitAuth();
                 readMessage();
-            } catch(IOException e){
+            } catch (IOException e) {
                 e.printStackTrace();
-            }
-            finally {
+            } finally {
                 closeConnection();
             }
         });
         readThread.setDaemon(true);
         readThread.start();
     }
+
+
 
     private void closeConnection() {
         if(socket!=null){
@@ -70,26 +71,26 @@ public class ChatClient {
 
     private void readMessage() throws IOException {
         while (true) {
-                String s = in.readUTF();
-                System.out.println("Receive message: " + s);
-                if(Command.isCommand(s)) {
-                    Command command = Command.getCommand(s);
-                    String[] params = command.parse(s);
+            String s = in.readUTF();
+            System.out.println("Receive message: " + s);
+            if (Command.isCommand(s)) {
+                Command command = Command.getCommand(s);
+                String[] params = command.parse(s);
 
-                    if (command == Command.END) {
-                        controller.toogleBoxesVisibility(false);
-                        break;
-                    }
-                    if(command == Command.ERROR){
-                        Platform.runLater(()->controller.showError(params));
-                        continue;
-                    }
-                    if(command == Command.CLIENTS){
-                        controller.updateListClients(params);
-                        continue;
-                    }
+                if (command == Command.END) {
+                    controller.toogleBoxesVisibility(false);
+                    break;
                 }
-                controller.addMessage(s);
+                if (command == Command.ERROR) {
+                    Platform.runLater(() -> controller.showError(params));
+                    continue;
+                }
+                if (command == Command.CLIENTS) {
+                    controller.updateListClients(params);
+                    continue;
+                }
+            }
+            controller.addMessage(s);
         }
     }
 
