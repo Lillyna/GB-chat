@@ -6,6 +6,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketException;
 
 public class ClientHandler {
     final private Socket socket;
@@ -13,6 +14,7 @@ public class ClientHandler {
     private String nick;
     private final DataInputStream in;
     private final DataOutputStream out;
+    private boolean isConnected = false;
     AuthService authService;
 
     public String getNick() {
@@ -29,20 +31,34 @@ public class ClientHandler {
             this.out = new DataOutputStream(socket.getOutputStream());
             this.authService = authService;
 
-            new Thread(() -> {
+            Thread readThread = new Thread(() -> {
+
+                while (true) {
+                    try {
+                        authenticate();
+                        readMessage();
+                    } finally {
+                        closeConnection();
+                    }
+                }
+            });
+            readThread.start();
+            new Thread(() ->
+            {
+
                 try {
+                    Thread.sleep(120_00);
+                    if (!isConnected) {
+                        closeConnection();
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
 
-                   authenticate();
-                   readMessage();
-               } finally {
-                   closeConnection();
-               }
-
-           }).start();
-
-       } catch (IOException e){
-           throw new RuntimeException("Ошибка подключение к клиенту", e);
-       }
+            }).start();
+        } catch (IOException e) {
+            throw new RuntimeException("Ошибка подключения к клиенту", e);
+        }
 
     }
 
@@ -85,34 +101,41 @@ public class ClientHandler {
     private void authenticate() {
         while (true) {
             try {
-                String msg = in.readUTF(); // /auth login1 pass1
-                if (Command.isCommand(msg)) {
+                if (!socket.isClosed()) {
+                    String msg = in.readUTF(); // /auth login1 pass1
 
-                    Command command = Command.getCommand(msg);
-                    String[] params = command.parse(msg);
+                    if (Command.isCommand(msg)) {
 
-                if (command == Command.AUTH) {
+                        Command command = Command.getCommand(msg);
+                        String[] params = command.parse(msg);
 
-                    String login = params[0];
-                    String pass = params[1];
-                    String nick = authService.getNickByLoginAndPassword(login, pass);
-                    if (nick != null) {
-                        if (server.isNickBusy(nick)) {
-                            sendMessage(Command.ERROR, "Пользователь уже авторизован");
-                            continue;
+                        if (command == Command.AUTH) {
+
+                            String login = params[0];
+                            String pass = params[1];
+                            String nick = authService.getNickByLoginAndPassword(login, pass);
+                            if (nick != null) {
+                                if (server.isNickBusy(nick)) {
+                                    sendMessage(Command.ERROR, "Пользователь уже авторизован");
+                                    continue;
+                                }
+                                isConnected = true;
+                                sendMessage(Command.AUTHOK, nick);
+                                this.nick = nick;
+                                server.broadcast("Пользователь " + nick + " вошел в чат");
+                                server.subscribe(this);
+                                break;
+                            } else {
+                                sendMessage(Command.ERROR, "Неверные логин и пароль");
+                            }
                         }
-                        sendMessage(Command.AUTHOK, nick);
-                        this.nick = nick;
-                        server.broadcast("Пользователь " + nick + " вошел в чат");
-                        server.subscribe(this);
-                        break;
                     }
-                    else{
-                        sendMessage(Command.ERROR, "Неверные логин и пароль");
-                    }
-                }}
-            } catch (IOException e) {
-                e.printStackTrace();
+                }
+            } catch (SocketException se) {
+                System.out.println("Сокет закрыт");
+                se.printStackTrace();
+            } catch (IOException ie) {
+                ie.printStackTrace();
             }
         }
 

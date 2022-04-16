@@ -15,7 +15,7 @@
 </HBox>
 <HBox fx:id="messageBox" visible="false" spacing="5">
     <VBox spacing="5">
-        <TextArea fx:id="textArea" VBox.vgrow="ALWAYS" editable="false"/>
+        <TextArea fx:id="textArea" VBox.vgrow="ALWAYS" editable="false" wrapText="true"/>
         <HBox>
             <TextField fx:id="textField" HBox.hgrow="ALWAYS"/>
             <Button text="Send" defaultButton="true" onAction="#sendButtonClick"/>
