@@ -18,7 +18,10 @@ public class AuthServiceImpl implements AuthService {
     }
 
     public AuthServiceImpl() {
-        this.start();
+        users = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            users.add(new UserData("login" + i, "pass" + i, "nick" + i));
+        }
     }
 
     @Override
@@ -32,17 +35,13 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void start() {
-        users = new ArrayList<>();
-        for (int i = 0; i < 5; i++) {
-            users.add(new UserData("login" + i, "pass" + i, "nick" + i));
-        }
+    public void close() {
+        System.out.println("Сервис аутентификации остановлен");
 
     }
 
     @Override
-    public void close() {
-        System.out.println("Сервис аутентификации остановлен");
-
+    public void run() {
+        System.out.println("AuthService run");
     }
 }

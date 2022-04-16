@@ -5,4 +5,5 @@ module com.example.gbchat1 {
 
     opens com.example.gbchat1 to javafx.fxml;
     exports com.example.gbchat1;
+
 }

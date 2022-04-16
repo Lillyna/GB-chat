@@ -8,20 +8,19 @@
     <padding>
         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
     </padding>
-
-    <HBox fx:id="loginBox" VBox.vgrow="ALWAYS">
-        <TextField fx:id="loginField" promptText="Login"/>
-        <PasswordField fx:id="passwordField" promptText="Password"/>
-        <Button fx:id="authButton" text="Login" onAction="#authButtonClick"/>
-    </HBox>
-    <VBox fx:id="messageBox" VBox.vgrow="ALWAYS" visible="false">
-        <TextArea fx:id="messageArea" VBox.vgrow="ALWAYS"/>
-        <HBox VBox.vgrow="ALWAYS">
-            <TextField fx:id="textField" VBox.vgrow="ALWAYS"/>
-            <Button fx:id="sendButton" text="Send" defaultButton="true" onAction="#sendButtonClick"/>
+<HBox fx:id="loginBox" spacing="5" VBox.vgrow="ALWAYS">
+    <TextField fx:id="loginField" promptText="Login"/>
+    <PasswordField fx:id="passwordField" promptText="Password"/>
+    <Button text="Auth" defaultButton="true" onAction="#authButtonClick"/>
+</HBox>
+<HBox fx:id="messageBox" visible="false" spacing="5">
+    <VBox spacing="5">
+        <TextArea fx:id="textArea" VBox.vgrow="ALWAYS" editable="false"/>
+        <HBox>
+            <TextField fx:id="textField" HBox.hgrow="ALWAYS"/>
+            <Button text="Send" defaultButton="true" onAction="#sendButtonClick"/>
         </HBox>
-
     </VBox>
-
-
+    <ListView fx:id="clientList" minWidth="200" maxWidth="200" onMouseClicked="#selectClient"/>
+</HBox>
 </VBox>

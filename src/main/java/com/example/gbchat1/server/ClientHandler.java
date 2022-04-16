@@ -1,9 +1,10 @@
 package com.example.gbchat1.server;
 
+import com.example.gbchat1.Command;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.net.Socket;
 
 public class ClientHandler {
@@ -12,23 +13,25 @@ public class ClientHandler {
     private String nick;
     private final DataInputStream in;
     private final DataOutputStream out;
-    AuthServiceImpl authService;
+    AuthService authService;
 
     public String getNick() {
         return nick;
     }
 
-    public ClientHandler(Socket socket, ChatServer chatServer) {
+    public ClientHandler(Socket socket, ChatServer chatServer, AuthService authService) {
 
-       try{
-           this.socket = socket;
-           this.server = chatServer;
-           this.in = new DataInputStream(socket.getInputStream());
-           this.out = new DataOutputStream(socket.getOutputStream());
-           this.authService = new AuthServiceImpl();
+        try {
+            this.nick = "";
+            this.socket = socket;
+            this.server = chatServer;
+            this.in = new DataInputStream(socket.getInputStream());
+            this.out = new DataOutputStream(socket.getOutputStream());
+            this.authService = authService;
 
-           new Thread(() -> {
-               try{
+            new Thread(() -> {
+                try {
+
                    authenticate();
                    readMessage();
                } finally {
@@ -52,53 +55,75 @@ public class ClientHandler {
         }
     }
 
-    private void readMessage(){
-        while (true){
-            String msg;
-            try {
-                msg = in.readUTF();
+    private void readMessage() {
+        try {
+            while (true) {
+                final String msg = in.readUTF();
                 System.out.println("Получено сообщение: " + msg);
-                if("/end".equals(msg)){
-                    break;
+                if (Command.isCommand(msg)) {
+                    final Command command = Command.getCommand(msg);
+                    final String[] params = command.parse(msg);
+                    if (command == Command.END) {
+                        break;
+                    }
+                    if (command == Command.PRIVATE_MESSAGE) {
+                        server.sendMessageToClient(this, params[0], params[1]);
+                        continue;
+                    }
                 }
+                server.broadcast(nick + ": " + msg);
+            }
 
 
-            } catch (IOException e) {
+        } catch (IOException e) {
                 e.printStackTrace();
             }
 
-        }
+
     }
 
     private void authenticate() {
-        while (true){
-            try{
+        while (true) {
+            try {
                 String msg = in.readUTF(); // /auth login1 pass1
-                if(msg.startsWith("/auth")){
-                    final String[] s = msg.split(" ");
-                    String login = s[1];
-                    String pass = s[2];
+                if (Command.isCommand(msg)) {
+
+                    Command command = Command.getCommand(msg);
+                    String[] params = command.parse(msg);
+
+                if (command == Command.AUTH) {
+
+                    String login = params[0];
+                    String pass = params[1];
                     String nick = authService.getNickByLoginAndPassword(login, pass);
-                    if(nick!=null){
-                        if(server.isNickBusy(nick)){
-                            sendMessage("Пользователь уже авторизован");
+                    if (nick != null) {
+                        if (server.isNickBusy(nick)) {
+                            sendMessage(Command.ERROR, "Пользователь уже авторизован");
                             continue;
                         }
-                        sendMessage("/authok "+ nick);
+                        sendMessage(Command.AUTHOK, nick);
                         this.nick = nick;
                         server.broadcast("Пользователь " + nick + " вошел в чат");
                         server.subscribe(this);
                         break;
                     }
-                }
-            } catch (IOException e){
+                    else{
+                        sendMessage(Command.ERROR, "Неверные логин и пароль");
+                    }
+                }}
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+
+    }
+
+    public void sendMessage(Command command, String... params) {
+        sendMessage(command.collectMessage(params));
     }
 
     private void closeConnection() {
-        sendMessage("/end");
+        sendMessage(Command.END);
         try{
             if(in != null){
                 in.close();
