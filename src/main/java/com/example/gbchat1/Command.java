@@ -50,7 +50,14 @@ public enum Command {
 
             return nicks;
         }
-    };// /end
+    },
+    CHANGE_NICK("/rename"){
+        @Override
+        public String[] parse(String commandText) {
+            String[] split = commandText.split(COMMAND_DELIMETER);
+            return new String[]{split[1]};
+        }
+    }; // /rename new_nick;
 
     private static final Map<String, Command> map = Stream.of(Command.values())
             .collect(Collectors.toMap(Command::getCommand, Function.identity()));

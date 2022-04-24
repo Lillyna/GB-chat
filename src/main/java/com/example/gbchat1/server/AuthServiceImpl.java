@@ -1,34 +1,29 @@
 package com.example.gbchat1.server;
 
+import com.example.gbchat1.db.DbConnection;
+import com.example.gbchat1.db.UserData;
+
+import java.sql.*;
 import java.util.ArrayList;
 
 public class AuthServiceImpl implements AuthService {
-    private ArrayList<UserData> users;
-
-    private class UserData {
-        final private String login;
-        final private String password;
-        final private String nick;
-
-        public UserData(String login, String password, String nick) {
-            this.login = login;
-            this.password = password;
-            this.nick = nick;
-        }
-    }
+    private ArrayList<UserData> users = new ArrayList<>();
 
     public AuthServiceImpl() {
-        users = new ArrayList<>();
-        for (int i = 0; i < 5; i++) {
-            users.add(new UserData("login" + i, "pass" + i, "nick" + i));
-        }
+        DbConnection dbConnection = new DbConnection(users);
+    }
+
+    @Override
+    public void updateUsers(){
+        users.clear();
+        DbConnection dbConnection = new DbConnection(users);
     }
 
     @Override
     public String getNickByLoginAndPassword(String login, String password) {
         for (UserData user : users) {
-            if (user.login.equals(login) && user.password.equals(password)) {
-                return user.nick;
+            if (user.getLogin().equals(login) && user.getPassword().equals(password)) {
+                return user.getNick();
             }
         }
         return null;
