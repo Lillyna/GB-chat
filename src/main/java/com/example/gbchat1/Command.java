@@ -1,7 +1,5 @@
 package com.example.gbchat1;
 
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -58,8 +56,8 @@ public enum Command {
             .collect(Collectors.toMap(Command::getCommand, Function.identity()));
 
     private static final String COMMAND_DELIMETER = "\\s+";
-    private String command;
-    private String[] params = new String[0];
+    private final String command;
+    private final String[] params = new String[0];
 
     Command(String command) {
         this.command = command;

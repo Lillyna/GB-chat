@@ -1,14 +1,11 @@
 package com.example.gbchat1;
 
-import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
 
-import java.io.IOException;
 import java.util.Optional;
 
 public class ClientController {

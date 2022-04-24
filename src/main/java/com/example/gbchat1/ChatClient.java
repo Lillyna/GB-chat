@@ -13,13 +13,9 @@ public class ChatClient {
     private DataOutputStream out;
     private DataInputStream in;
     final private ClientController controller;
+    private Boolean isConnected = false;
 
     public ChatClient(ClientController controller) {
-//        try {
-//            Thread.sleep(120000);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
         this.controller = controller;
     }
 
@@ -30,7 +26,7 @@ public class ChatClient {
         final Thread readThread = new Thread(() -> {
             try {
                 waitAuth();
-                readMessage();
+                if (isConnected) readMessage();
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
@@ -86,7 +82,7 @@ public class ChatClient {
                     continue;
                 }
                 if (command == Command.CLIENTS) {
-                    controller.updateListClients(params);
+                    Platform.runLater(() -> controller.updateListClients(params));
                     continue;
                 }
             }
@@ -102,6 +98,7 @@ public class ChatClient {
                     Command command = Command.getCommand(msg);
                     String[] params = command.parse(msg);
                     if (command == Command.AUTHOK) {
+                        isConnected = true;
                         final String nick = params[0];
                         controller.toogleBoxesVisibility(true);
                         controller.addMessage("Успешная авторизация под ником " + nick);
@@ -109,6 +106,10 @@ public class ChatClient {
                     }
                     if (Command.ERROR.equals(command)) {
                         Platform.runLater(() -> controller.showError(params));
+                    }
+                    if (command == Command.END) {
+                        isConnected = false;
+                        closeConnection();
                     }
                 }
             }
