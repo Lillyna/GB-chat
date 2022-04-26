@@ -7,6 +7,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
+import java.sql.SQLException;
 
 public class ClientHandler {
     final private Socket socket;
@@ -47,7 +48,7 @@ public class ClientHandler {
             {
 
                 try {
-                    Thread.sleep(120_00);
+                    Thread.sleep(120_000);
                     if (!isConnected) {
                         closeConnection();
                     }
@@ -86,14 +87,23 @@ public class ClientHandler {
                         server.sendMessageToClient(this, params[0], params[1]);
                         continue;
                     }
+                    if (command == Command.CHANGE_NICK) {
+                        System.out.println("NICK: " + this.getNick());
+                        this.nick = server.changeNick(this.getNick(), params[0]);
+                        authService.updateUsers();
+
+                        continue;
+                    }
                 }
                 server.broadcast(nick + ": " + msg);
             }
 
 
         } catch (IOException e) {
-                e.printStackTrace();
-            }
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
 
     }

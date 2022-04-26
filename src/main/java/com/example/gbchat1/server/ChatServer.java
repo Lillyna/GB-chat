@@ -1,10 +1,12 @@
 package com.example.gbchat1.server;
 
 import com.example.gbchat1.Command;
+import com.example.gbchat1.db.DbConnection;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -71,5 +73,10 @@ public class ChatServer {
         } else {
             sender.sendMessage(Command.ERROR, "Участника с ником " + to + " нет в чате!");
         }
+    }
+
+    public String changeNick(String oldNick, String newNick) throws SQLException {
+        DbConnection dbConnection = new DbConnection(oldNick, newNick);
+        return newNick;
     }
 }
