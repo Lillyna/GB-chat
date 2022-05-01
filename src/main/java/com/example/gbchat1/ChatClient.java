@@ -66,27 +66,30 @@ public class ChatClient {
     }
 
     private void readMessage() throws IOException {
-        while (true) {
-            String s = in.readUTF();
-            System.out.println("Receive message: " + s);
-            if (Command.isCommand(s)) {
-                Command command = Command.getCommand(s);
-                String[] params = command.parse(s);
 
-                if (command == Command.END) {
-                    controller.toogleBoxesVisibility(false);
-                    break;
+            while (true) {
+                String s = in.readUTF();
+                System.out.println("Receive message: " + s);
+                if (Command.isCommand(s)) {
+                    Command command = Command.getCommand(s);
+                    String[] params = command.parse(s);
+
+                    if (command == Command.END) {
+                        controller.toogleBoxesVisibility(false);
+                        break;
+                    }
+                    if (command == Command.ERROR) {
+                        Platform.runLater(() -> controller.showError(params));
+                        continue;
+                    }
+                    if (command == Command.CLIENTS) {
+                        Platform.runLater(() -> controller.updateListClients(params));
+                        continue;
+                    }
                 }
-                if (command == Command.ERROR) {
-                    Platform.runLater(() -> controller.showError(params));
-                    continue;
-                }
-                if (command == Command.CLIENTS) {
-                    Platform.runLater(() -> controller.updateListClients(params));
-                    continue;
-                }
-            }
-            controller.addMessage(s);
+
+                controller.addMessage(s);
+
         }
     }
 
