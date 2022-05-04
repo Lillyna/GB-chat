@@ -2,8 +2,10 @@ package com.example.gbchat1;
 
 import javafx.application.Platform;
 
+import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.Socket;
 
@@ -66,27 +68,30 @@ public class ChatClient {
     }
 
     private void readMessage() throws IOException {
-        while (true) {
-            String s = in.readUTF();
-            System.out.println("Receive message: " + s);
-            if (Command.isCommand(s)) {
-                Command command = Command.getCommand(s);
-                String[] params = command.parse(s);
 
-                if (command == Command.END) {
-                    controller.toogleBoxesVisibility(false);
-                    break;
+            while (true) {
+                String s = in.readUTF();
+                System.out.println("Receive message: " + s);
+                if (Command.isCommand(s)) {
+                    Command command = Command.getCommand(s);
+                    String[] params = command.parse(s);
+
+                    if (command == Command.END) {
+                        controller.toogleBoxesVisibility(false);
+                        break;
+                    }
+                    if (command == Command.ERROR) {
+                        Platform.runLater(() -> controller.showError(params));
+                        continue;
+                    }
+                    if (command == Command.CLIENTS) {
+                        Platform.runLater(() -> controller.updateListClients(params));
+                        continue;
+                    }
                 }
-                if (command == Command.ERROR) {
-                    Platform.runLater(() -> controller.showError(params));
-                    continue;
-                }
-                if (command == Command.CLIENTS) {
-                    Platform.runLater(() -> controller.updateListClients(params));
-                    continue;
-                }
-            }
-            controller.addMessage(s);
+
+                controller.addMessage(s);
+
         }
     }
 
@@ -101,7 +106,17 @@ public class ChatClient {
                         isConnected = true;
                         final String nick = params[0];
                         controller.toogleBoxesVisibility(true);
+                        StringBuilder history = new StringBuilder();
+                        try (BufferedReader reader = new BufferedReader(new FileReader("history_" +
+                                nick + ".txt"))) {
+                            for (int i = 0; i < 100; i++) {
+                                String line = reader.readLine();
+                                if(line == null) break;
+                                history.append("\n"+line);
+                            }
+                        }
                         controller.addMessage("Успешная авторизация под ником " + nick);
+                        controller.addMessage(history.toString());
                         break;
                     }
                     if (Command.ERROR.equals(command)) {

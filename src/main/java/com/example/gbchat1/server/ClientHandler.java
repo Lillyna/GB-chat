@@ -2,8 +2,10 @@ package com.example.gbchat1.server;
 
 import com.example.gbchat1.Command;
 
+import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
@@ -67,6 +69,12 @@ public class ClientHandler {
         try {
             System.out.println("Отправляю сообщение " + message);
             out.writeUTF(message);
+            if (!Command.isCommand(message)) {
+                try (BufferedWriter writer = new BufferedWriter(new FileWriter("history_" +
+                        nick + ".txt", true))) {
+                    writer.append("\n" + message);
+                }
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -97,7 +105,6 @@ public class ClientHandler {
                 }
                 server.broadcast(nick + ": " + msg);
             }
-
 
         } catch (IOException e) {
             e.printStackTrace();
