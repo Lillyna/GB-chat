@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
 import java.sql.SQLException;
+import java.util.concurrent.ExecutorService;
 
 public class ClientHandler {
     final private Socket socket;
@@ -19,12 +20,13 @@ public class ClientHandler {
     private final DataOutputStream out;
     private boolean isConnected = false;
     AuthService authService;
+    ExecutorService executorService;
 
     public String getNick() {
         return nick;
     }
 
-    public ClientHandler(Socket socket, ChatServer chatServer, AuthService authService) {
+    public ClientHandler(Socket socket, ChatServer chatServer, AuthService authService, ExecutorService executorService) {
 
         try {
             this.nick = "";
@@ -33,8 +35,8 @@ public class ClientHandler {
             this.in = new DataInputStream(socket.getInputStream());
             this.out = new DataOutputStream(socket.getOutputStream());
             this.authService = authService;
-
-            Thread readThread = new Thread(() -> {
+            this.executorService = executorService;
+            executorService.submit(() -> {
 
                 while (true) {
                     try {
@@ -45,8 +47,7 @@ public class ClientHandler {
                     }
                 }
             });
-            readThread.start();
-            new Thread(() ->
+            executorService.submit(() ->
             {
 
                 try {
@@ -58,7 +59,7 @@ public class ClientHandler {
                     e.printStackTrace();
                 }
 
-            }).start();
+            });
         } catch (IOException e) {
             throw new RuntimeException("Ошибка подключения к клиенту", e);
         }
@@ -163,6 +164,7 @@ public class ClientHandler {
     }
 
     private void closeConnection() {
+        executorService.shutdown();
         sendMessage(Command.END);
         try{
             if(in != null){

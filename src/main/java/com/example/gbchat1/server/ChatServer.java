@@ -9,11 +9,16 @@ import java.net.Socket;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 public class ChatServer {
+    private static final int MAX_CLIENTS = 10;
 
     private final Map<String, ClientHandler> clients;
+    private final ExecutorService executorService = Executors.newFixedThreadPool(MAX_CLIENTS);
 
     public ChatServer() {
         this.clients = new HashMap<>();
@@ -25,7 +30,7 @@ public class ChatServer {
             while (true) {
                 System.out.println("Wait client connection...");
                 final Socket socket = serverSocket.accept();
-                new ClientHandler(socket, this, authService);
+                new ClientHandler(socket, this, authService, executorService);
                 System.out.println("Client connected");
             }
         } catch (IOException e) {
