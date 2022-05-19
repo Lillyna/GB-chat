@@ -8,6 +8,8 @@ import java.io.DataOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ChatClient {
 
@@ -16,6 +18,7 @@ public class ChatClient {
     private DataInputStream in;
     final private ClientController controller;
     private Boolean isConnected = false;
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     public ChatClient(ClientController controller) {
         this.controller = controller;
@@ -25,7 +28,7 @@ public class ChatClient {
         socket = new Socket("localhost", 8181);
         in = new DataInputStream(socket.getInputStream());
         out = new DataOutputStream(socket.getOutputStream());
-        final Thread readThread = new Thread(() -> {
+        executorService.submit(() -> {
             try {
                 waitAuth();
                 if (isConnected) readMessage();
@@ -35,13 +38,12 @@ public class ChatClient {
                 closeConnection();
             }
         });
-        readThread.setDaemon(true);
-        readThread.start();
     }
 
 
 
     private void closeConnection() {
+        executorService.shutdown();
         if(socket!=null){
             try {
                 socket.close();
