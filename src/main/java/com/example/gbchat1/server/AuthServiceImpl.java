@@ -2,12 +2,14 @@ package com.example.gbchat1.server;
 
 import com.example.gbchat1.db.DbConnection;
 import com.example.gbchat1.db.UserData;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import java.sql.*;
 import java.util.ArrayList;
 
 public class AuthServiceImpl implements AuthService {
     private ArrayList<UserData> users = new ArrayList<>();
+    private static final Logger log = LogManager.getLogger(AuthServiceImpl.class);
 
     public AuthServiceImpl() {
         DbConnection dbConnection = new DbConnection(users);
@@ -15,6 +17,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void updateUsers(){
+        log.debug("Обновление пользователей: {}", ()-> users);
         users.clear();
         DbConnection dbConnection = new DbConnection(users);
     }
@@ -31,12 +34,12 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void close() {
-        System.out.println("Сервис аутентификации остановлен");
+        log.info("Сервис аутентификации остановлен");
 
     }
 
     @Override
     public void run() {
-        System.out.println("AuthService run");
+        log.info("Сервис аутентификации запущен");
     }
 }

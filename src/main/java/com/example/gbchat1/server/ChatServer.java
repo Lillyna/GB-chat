@@ -13,9 +13,13 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 public class ChatServer {
     private static final int MAX_CLIENTS = 10;
+    private static final Logger log = LogManager.getLogger(ChatServer.class);
 
     private final Map<String, ClientHandler> clients;
     private final ExecutorService executorService = Executors.newFixedThreadPool(MAX_CLIENTS);
@@ -28,10 +32,11 @@ public class ChatServer {
         try (ServerSocket serverSocket = new ServerSocket(8181);
              AuthService authService = new AuthServiceImpl()) {
             while (true) {
-                System.out.println("Wait client connection...");
+                log.info("Server started");
+                log.trace("Wait client connection...");
                 final Socket socket = serverSocket.accept();
                 new ClientHandler(socket, this, authService, executorService);
-                System.out.println("Client connected");
+                log.info("Client connected");
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -76,6 +81,7 @@ public class ChatServer {
             receiver.sendMessage("от " + sender.getNick() + ": " + message);
             sender.sendMessage("участнику " + to + ": " + message);
         } else {
+            log.error( "Участника с ником {} нет в чате!", ()->Command.ERROR);
             sender.sendMessage(Command.ERROR, "Участника с ником " + to + " нет в чате!");
         }
     }
