@@ -1,6 +1,8 @@
 package com.example.gbchat1.server;
 
 import com.example.gbchat1.Command;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedWriter;
 import java.io.DataInputStream;
@@ -21,6 +23,7 @@ public class ClientHandler {
     private boolean isConnected = false;
     AuthService authService;
     ExecutorService executorService;
+    private static final Logger log = LogManager.getLogger(ClientHandler.class);
 
     public String getNick() {
         return nick;
@@ -61,6 +64,7 @@ public class ClientHandler {
 
             });
         } catch (IOException e) {
+            log.error("Ошибка подключения к клиенту {}",()->e);
             throw new RuntimeException("Ошибка подключения к клиенту", e);
         }
 
@@ -68,7 +72,7 @@ public class ClientHandler {
 
     public void sendMessage(String message) {
         try {
-            System.out.println("Отправляю сообщение " + message);
+            log.trace("Отправляю сообщение {}", ()-> message);
             out.writeUTF(message);
             if (!Command.isCommand(message)) {
                 try (BufferedWriter writer = new BufferedWriter(new FileWriter("history_" +
@@ -85,7 +89,7 @@ public class ClientHandler {
         try {
             while (true) {
                 final String msg = in.readUTF();
-                System.out.println("Получено сообщение: " + msg);
+                log.trace("Получено сообщение: {}", ()-> msg);
                 if (Command.isCommand(msg)) {
                     final Command command = Command.getCommand(msg);
                     final String[] params = command.parse(msg);
@@ -97,7 +101,7 @@ public class ClientHandler {
                         continue;
                     }
                     if (command == Command.CHANGE_NICK) {
-                        System.out.println("NICK: " + this.getNick());
+                        log.info("NICK: {}", ()->  this.getNick());
                         this.nick = server.changeNick(this.getNick(), params[0]);
                         authService.updateUsers();
 
@@ -150,6 +154,7 @@ public class ClientHandler {
                     }
                 }
             } catch (SocketException se) {
+                log.warn("Сокет закрыт");
                 System.out.println("Сокет закрыт");
                 se.printStackTrace();
             } catch (IOException ie) {
@@ -171,6 +176,7 @@ public class ClientHandler {
                 in.close();
             }
         } catch (IOException e){
+            log.error("Ошибка отключения {}", () -> e);
             throw new RuntimeException("Ошибка отключения", e );
         }
         try{
@@ -178,6 +184,7 @@ public class ClientHandler {
                 out.close();
             }
         } catch (IOException e){
+            log.error("Ошибка отключения {}", () -> e);
             throw new RuntimeException("Ошибка отключения", e );
         }
         try{
@@ -186,6 +193,7 @@ public class ClientHandler {
                 socket.close();
             }
         } catch (IOException e){
+            log.error("Ошибка отключения {}", () -> e);
             throw new RuntimeException("Ошибка отключения", e );
         }
     }

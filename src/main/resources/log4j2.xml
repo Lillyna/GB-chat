@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Configuration xmlns="">
+    <Appenders>
+        <Console name="cons" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"></PatternLayout>
+        </Console>
+        <File name="to_file_chat_server" fileName="chat_server_logfile.log" append="true">
+            <PatternLayout pattern="%-5p %d{HH:mm:ss.SSS} [%t] %C (%F:%L) - %m%n"></PatternLayout>
+        </File>
+        <File name="to_file_client_handler" fileName="client_handler_logfile.log" append="true">
+            <PatternLayout pattern="%-5p %d{HH:mm:ss.SSS} [%t] %C (%F:%L) - %m%n"></PatternLayout>
+        </File>
+        <File name="to_file_auth_service" fileName="auth_service_logfile.log" append="true">
+            <PatternLayout pattern="%-5p %d{HH:mm:ss.SSS} [%t] %C (%F:%L) - %m%n"></PatternLayout>
+        </File>
+    </Appenders>
+    <Loggers>
+        <Logger name ="com.example.gbchat1.server.ChatServer" level="all" additivity="false">
+            <AppenderRef ref="cons"/>
+            <AppenderRef ref="to_file_chat_server"/>
+        </Logger>
+        <Logger name ="com.example.gbchat1.server.AuthServiceImpl" level="all" additivity="false">
+            <AppenderRef ref="cons"/>
+            <AppenderRef ref="to_file_auth_service"/>
+        </Logger>
+        <Logger name ="com.example.gbchat1.server.ClientHandler" level="all" additivity="false">
+            <AppenderRef ref="cons"/>
+            <AppenderRef ref="to_file_client_handler"/>
+        </Logger>
+        <Root level="warn">
+            <AppenderRef ref="cons"/>
+        </Root>
+    </Loggers>
+
+</Configuration>
